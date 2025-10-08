@@ -151,20 +151,34 @@ class BasicSudokuSolver {
 // Enhanced Sudoku Solver (Optimized Algorithm)
 class SudokuSolver {
     constructor() {
-        this.grid = Array(9).fill().map(() => Array(9).fill(0));
-        this.originalGrid = Array(9).fill().map(() => Array(9).fill(0));
-        this.possibilities = Array(9).fill().map(() => Array(9).fill().map(() => new Set([1,2,3,4,5,6,7,8,9])));
-        this.isAnimating = false;
-        this.solutionSteps = 0;
-        this.animationSpeed = 50; // milliseconds
-        this.speedSettings = [0, 25, 50, 200]; // Instant, Fast, Normal, Slow
-        
-        // Initialize basic solver for comparison
-        this.basicSolver = new BasicSudokuSolver('basicBoard');
-        
-        this.initializeBoard();
-        this.basicSolver.initializeBoard();
-        this.attachEventListeners();
+        try {
+            console.log('Initializing SudokuSolver...');
+            
+            this.grid = Array(9).fill().map(() => Array(9).fill(0));
+            this.originalGrid = Array(9).fill().map(() => Array(9).fill(0));
+            this.possibilities = Array(9).fill().map(() => Array(9).fill().map(() => new Set([1,2,3,4,5,6,7,8,9])));
+            this.isAnimating = false;
+            this.solutionSteps = 0;
+            this.animationSpeed = 50; // milliseconds
+            this.speedSettings = [0, 25, 50, 200]; // Instant, Fast, Normal, Slow
+            
+            console.log('Creating basic solver...');
+            // Initialize basic solver for comparison
+            this.basicSolver = new BasicSudokuSolver('basicBoard');
+            
+            console.log('Initializing boards...');
+            this.initializeBoard();
+            this.basicSolver.initializeBoard();
+            
+            console.log('Attaching event listeners...');
+            this.attachEventListeners();
+            
+            console.log('SudokuSolver initialized successfully');
+            
+        } catch (error) {
+            console.error('Error initializing SudokuSolver:', error);
+            alert('Error initializing solver: ' + error.message);
+        }
     }
 
     initializeBoard() {
@@ -213,52 +227,67 @@ class SudokuSolver {
 
     // Initialize possibilities for constraint propagation
     initializePossibilities() {
-        // Reset all possibilities
-        for (let row = 0; row < 9; row++) {
-            for (let col = 0; col < 9; col++) {
-                if (this.grid[row][col] === 0) {
-                    this.possibilities[row][col] = new Set([1,2,3,4,5,6,7,8,9]);
-                } else {
-                    this.possibilities[row][col] = new Set();
+        try {
+            console.log('Initializing possibilities...');
+            // Reset all possibilities
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (this.grid[row][col] === 0) {
+                        this.possibilities[row][col] = new Set([1,2,3,4,5,6,7,8,9]);
+                    } else {
+                        this.possibilities[row][col] = new Set();
+                    }
                 }
             }
-        }
-        
-        // Remove impossibilities based on current grid state
-        for (let row = 0; row < 9; row++) {
-            for (let col = 0; col < 9; col++) {
-                if (this.grid[row][col] !== 0) {
-                    this.eliminateFromPeers(row, col, this.grid[row][col]);
+            
+            // Remove impossibilities based on current grid state
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (this.grid[row][col] !== 0) {
+                        this.eliminateFromPeers(row, col, this.grid[row][col]);
+                    }
                 }
             }
+            
+            console.log('Possibilities initialized successfully');
+            return true;
+            
+        } catch (error) {
+            console.error('Error initializing possibilities:', error);
+            return false;
         }
     }
 
     // Eliminate a value from all peer cells (same row, column, box)
     eliminateFromPeers(row, col, value) {
-        // Eliminate from row
-        for (let c = 0; c < 9; c++) {
-            if (c !== col) {
-                this.possibilities[row][c].delete(value);
-            }
-        }
-        
-        // Eliminate from column
-        for (let r = 0; r < 9; r++) {
-            if (r !== row) {
-                this.possibilities[r][col].delete(value);
-            }
-        }
-        
-        // Eliminate from 3x3 box
-        const boxRow = Math.floor(row / 3) * 3;
-        const boxCol = Math.floor(col / 3) * 3;
-        for (let r = boxRow; r < boxRow + 3; r++) {
-            for (let c = boxCol; c < boxCol + 3; c++) {
-                if (r !== row || c !== col) {
-                    this.possibilities[r][c].delete(value);
+        try {
+            // Eliminate from row
+            for (let c = 0; c < 9; c++) {
+                if (c !== col && this.possibilities[row] && this.possibilities[row][c]) {
+                    this.possibilities[row][c].delete(value);
                 }
             }
+            
+            // Eliminate from column
+            for (let r = 0; r < 9; r++) {
+                if (r !== row && this.possibilities[r] && this.possibilities[r][col]) {
+                    this.possibilities[r][col].delete(value);
+                }
+            }
+            
+            // Eliminate from 3x3 box
+            const boxRow = Math.floor(row / 3) * 3;
+            const boxCol = Math.floor(col / 3) * 3;
+            for (let r = boxRow; r < boxRow + 3; r++) {
+                for (let c = boxCol; c < boxCol + 3; c++) {
+                    if ((r !== row || c !== col) && this.possibilities[r] && this.possibilities[r][c]) {
+                        this.possibilities[r][c].delete(value);
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error in eliminateFromPeers:', error);
         }
     }
 
@@ -715,6 +744,7 @@ class SudokuSolver {
     async solvePuzzle() {
         if (this.isAnimating) return;
 
+        console.log('=== Starting solve puzzle ===');
         this.isAnimating = true;
         this.solutionSteps = 0;
         this.basicSolver.solutionSteps = 0;
@@ -733,62 +763,88 @@ class SudokuSolver {
         document.getElementById('speedImprovement').textContent = '-';
         document.getElementById('stepReduction').textContent = '-';
 
-        // Initialize optimized solver
-        this.initializePossibilities();
-        this.constraintPropagation();
-        
-        // Copy current puzzle to basic solver
-        this.basicSolver.copyGrid(this.grid);
-        
-        // Copy grids for backtracking
-        const currentGrid = this.grid.map(row => [...row]);
-        const currentPossibilities = this.possibilities.map(row => row.map(cell => new Set(cell)));
-        const basicGrid = this.basicSolver.grid.map(row => [...row]);
-        
-        // Solve with both algorithms
-        const startTime = performance.now();
-        
         try {
-            // Start optimized solver
-            console.log('Starting optimized solver...');
-            const optimizedPromise = this.solveWithOptimizedBacktracking().then(success => {
-                const optimizedTime = performance.now() - startTime;
-                console.log('Optimized solver completed:', success, 'in', optimizedTime, 'ms');
-                return { success, time: optimizedTime, steps: this.solutionSteps, type: 'optimized' };
-            }).catch(error => {
-                console.error('Optimized solver error:', error);
-                const optimizedTime = performance.now() - startTime;
-                return { success: false, time: optimizedTime, steps: this.solutionSteps, type: 'optimized', error };
-            });
+            // Check if we have a valid puzzle to solve
+            const hasEmptyCells = this.grid.some(row => row.some(cell => cell === 0));
+            if (!hasEmptyCells) {
+                this.showStatus('Puzzle is already complete!', 'success');
+                this.isAnimating = false;
+                return;
+            }
+
+            console.log('Grid state before solving:', this.grid);
+
+            // Initialize optimized solver
+            console.log('Initializing possibilities...');
+            this.initializePossibilities();
             
-            // Start basic solver
-            console.log('Starting basic solver...');
-            const basicPromise = this.basicSolver.solveWithBasicBacktracking().then(success => {
-                const basicTime = performance.now() - startTime;
-                console.log('Basic solver completed:', success, 'in', basicTime, 'ms');
-                return { success, time: basicTime, steps: this.basicSolver.solutionSteps, type: 'basic' };
-            }).catch(error => {
-                console.error('Basic solver error:', error);
-                const basicTime = performance.now() - startTime;
-                return { success: false, time: basicTime, steps: this.basicSolver.solutionSteps, type: 'basic', error };
-            });
+            console.log('Running initial constraint propagation...');
+            const propagationResult = this.constraintPropagation();
+            console.log('Constraint propagation result:', propagationResult);
             
-            // Wait for both to complete
-            const results = await Promise.all([optimizedPromise, basicPromise]);
-            this.displayComparisonResults(results);
+            // Copy current puzzle to basic solver
+            console.log('Copying grid to basic solver...');
+            this.basicSolver.copyGrid(this.grid);
             
-        } catch (error) {
-            console.error('Main solving error:', error);
-            this.showStatus('Error occurred during solving.', 'error');
+            // Copy grids for potential backtracking
+            const currentGrid = this.grid.map(row => [...row]);
+            const currentPossibilities = this.possibilities.map(row => row.map(cell => new Set(cell)));
+            const basicGrid = this.basicSolver.grid.map(row => [...row]);
             
-            // Restore grids
-            this.grid = currentGrid;
-            this.possibilities = currentPossibilities;
-            this.basicSolver.grid = basicGrid;
-            this.updateGridDisplay();
-            this.basicSolver.updateGridDisplay();
+            // Start solving
+            const startTime = performance.now();
+            console.log('Starting both solvers at:', startTime);
+            
+            // Create promises for both solvers
+            let optimizedPromise, basicPromise;
+            
+            try {
+                console.log('Creating optimized solver promise...');
+                optimizedPromise = this.solveWithOptimizedBacktracking(0).then(success => {
+                    const optimizedTime = performance.now() - startTime;
+                    console.log('Optimized solver completed:', success, 'in', optimizedTime, 'ms');
+                    return { success, time: optimizedTime, steps: this.solutionSteps, type: 'optimized' };
+                }).catch(error => {
+                    console.error('Optimized solver error:', error);
+                    const optimizedTime = performance.now() - startTime;
+                    return { success: false, time: optimizedTime, steps: this.solutionSteps, type: 'optimized', error };
+                });
+                
+                console.log('Creating basic solver promise...');
+                basicPromise = this.basicSolver.solveWithBasicBacktracking().then(success => {
+                    const basicTime = performance.now() - startTime;
+                    console.log('Basic solver completed:', success, 'in', basicTime, 'ms');
+                    return { success, time: basicTime, steps: this.basicSolver.solutionSteps, type: 'basic' };
+                }).catch(error => {
+                    console.error('Basic solver error:', error);
+                    const basicTime = performance.now() - startTime;
+                    return { success: false, time: basicTime, steps: this.basicSolver.solutionSteps, type: 'basic', error };
+                });
+                
+                console.log('Waiting for both solvers to complete...');
+                const results = await Promise.all([optimizedPromise, basicPromise]);
+                console.log('Both solvers completed, results:', results);
+                
+                this.displayComparisonResults(results);
+                
+            } catch (promiseError) {
+                console.error('Promise creation/execution error:', promiseError);
+                this.showStatus('Error creating solver promises.', 'error');
+                
+                // Restore grids
+                this.grid = currentGrid;
+                this.possibilities = currentPossibilities;
+                this.basicSolver.grid = basicGrid;
+                this.updateGridDisplay();
+                this.basicSolver.updateGridDisplay();
+            }
+            
+        } catch (mainError) {
+            console.error('Main solving error:', mainError);
+            this.showStatus('Error occurred during solving setup.', 'error');
         }
 
+        console.log('=== Solve puzzle complete ===');
         this.isAnimating = false;
     }
 
@@ -842,17 +898,22 @@ class SudokuSolver {
 
     async solveWithOptimizedBacktracking(depth = 0) {
         try {
+            console.log(`=== Optimized solver at depth ${depth} ===`);
+            
             // Safety check to prevent infinite recursion
             if (depth > 81) {
                 console.warn('Maximum recursion depth reached');
                 return false;
             }
 
-            // Apply constraint propagation first
-            const propagationResult = this.constraintPropagation();
-            if (propagationResult === false) {
-                console.log('Constraint propagation failed at depth', depth);
-                return false;
+            // Apply constraint propagation first (but only if we're not too deep)
+            if (depth < 10) {
+                console.log('Applying constraint propagation...');
+                const propagationResult = this.constraintPropagation();
+                if (propagationResult === false) {
+                    console.log('Constraint propagation failed at depth', depth);
+                    return false;
+                }
             }
             
             // Check for contradictions
@@ -860,12 +921,13 @@ class SudokuSolver {
                 for (let col = 0; col < 9; col++) {
                     if (this.grid[row][col] === 0 && this.possibilities[row][col].size === 0) {
                         console.log('Contradiction found at', row, col, 'depth', depth);
-                        return false; // Contradiction found
+                        return false;
                     }
                 }
             }
             
             // Find the most constrained variable
+            console.log('Finding most constrained cell...');
             const cell = this.findMostConstrainedCell();
             if (!cell) {
                 console.log('Puzzle solved at depth', depth);
@@ -883,12 +945,18 @@ class SudokuSolver {
             
             console.log(`Trying cell (${row},${col}) with ${possibleValues.size} possibilities at depth ${depth}`);
             
-            // Try values in LCV order (least constraining first)
-            const orderedValues = this.orderValuesByLCV(row, col, possibleValues);
+            // Convert to array and try each value
+            const valuesArray = Array.from(possibleValues);
             
-            for (let i = 0; i < orderedValues.length; i++) {
-                const value = orderedValues[i];
-                console.log(`Trying value ${value} at (${row},${col}) - ${i+1}/${orderedValues.length}`);
+            for (let i = 0; i < valuesArray.length; i++) {
+                const value = valuesArray[i];
+                console.log(`Trying value ${value} at (${row},${col}) - ${i+1}/${valuesArray.length}`);
+                
+                // Validate the move first
+                if (!this.isValidPlacement(row, col, value)) {
+                    console.log(`Value ${value} is not valid at (${row},${col})`);
+                    continue;
+                }
                 
                 // Save state for backtracking
                 const savedGrid = this.grid.map(row => [...row]);
@@ -930,6 +998,7 @@ class SudokuSolver {
             
         } catch (error) {
             console.error('Error in solveWithOptimizedBacktracking at depth', depth, ':', error);
+            console.error('Stack trace:', error.stack);
             return false;
         }
     }
@@ -1126,7 +1195,40 @@ class SudokuSolver {
 
 // Initialize the Sudoku solver when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new SudokuSolver();
+    try {
+        console.log('DOM loaded, initializing Sudoku solver...');
+        const solver = new SudokuSolver();
+        
+        // Add a simple test function to window for debugging
+        window.testSolver = () => {
+            console.log('Testing solver...');
+            console.log('Grid:', solver.grid);
+            console.log('Basic solver:', solver.basicSolver);
+            console.log('Animation speed:', solver.animationSpeed);
+            console.log('Is animating:', solver.isAnimating);
+            return 'Solver test complete - check console for details';
+        };
+        
+        console.log('Sudoku solver initialized successfully');
+        console.log('You can test the solver by running: window.testSolver()');
+        
+    } catch (error) {
+        console.error('Failed to initialize Sudoku solver:', error);
+        console.error('Stack trace:', error.stack);
+        
+        // Show error to user
+        const container = document.querySelector('.container');
+        if (container) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'background: #ff6b6b; color: white; padding: 20px; margin: 20px; border-radius: 10px; text-align: center;';
+            errorDiv.innerHTML = `
+                <h3>Error Loading Sudoku Solver</h3>
+                <p>Please check the browser console for details.</p>
+                <p>Error: ${error.message}</p>
+            `;
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+    }
 });
 
 // Add some helpful keyboard shortcuts
@@ -1135,15 +1237,18 @@ document.addEventListener('keydown', (event) => {
         switch (event.key) {
             case 'Enter':
                 event.preventDefault();
-                document.getElementById('solveBtn').click();
+                const solveBtn = document.getElementById('solveBtn');
+                if (solveBtn) solveBtn.click();
                 break;
             case 'Backspace':
                 event.preventDefault();
-                document.getElementById('clearBtn').click();
+                const clearBtn = document.getElementById('clearBtn');
+                if (clearBtn) clearBtn.click();
                 break;
             case 'g':
                 event.preventDefault();
-                document.getElementById('generateBtn').click();
+                const generateBtn = document.getElementById('generateBtn');
+                if (generateBtn) generateBtn.click();
                 break;
         }
     }
